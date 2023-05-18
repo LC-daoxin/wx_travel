@@ -1,0 +1,97 @@
+{
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "益起低碳",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/activities/index",
+			"style": {
+				"navigationBarTitleText": "活动"
+			}
+		},
+		{
+			"path": "pages/scan/index",
+			"style": {
+				"navigationBarTitleText": "扫一扫"
+			}
+		},
+		{
+			"path": "pages/podcast/index",
+			"style": {
+				"navigationBarTitleText": "播客"
+			}
+		},
+		{
+			"path": "pages/mine/index",
+			"style": {
+				"navigationStyle": "custom",
+				"backgroundColor": "#F8F8F8"
+			}
+		},
+		{
+			"path": "pages/plugin/questionnaire",
+			"style": {
+				"navigationBarTitleText": "问卷"
+			}
+		},
+		{
+			"path": "pages/plugin/map",
+			"style": {
+				"navigationBarTitleText": "低碳出行"
+			}
+		}
+	],
+	"subpackages": [],
+	"tabBar": {
+		"color": "#7A7E83",
+		"selectedColor": "#3cc51f",
+		"borderStyle": "black",
+		"backgroundColor": "#ffffff",
+		"height": "0px",
+		"fontSize": "10px",
+		"iconWidth": "24px",
+		"spacing": "3px",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"text": "首页"
+			},
+			{
+				"pagePath": "pages/activities/index",
+				"text": "活动"
+			},
+			{
+				"pagePath": "pages/scan/index"
+			},
+			{
+				"pagePath": "pages/podcast/index",
+				"text": "播客"
+			},
+			{
+				"pagePath": "pages/mine/index",
+				"text": "我的"
+			}
+		]
+	},
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "益起低碳",
+		"navigationBarBackgroundColor": "#e4f3fb",
+		"backgroundColor": "#e4f3fb"
+	},
+	"easycom": {
+		"autoscan": true,
+		"custom": {
+			"^u-(.*)": "uview-plus/components/u-$1/u-$1.vue",
+			"^pyh-nv": "@/components/pyh-nv/pyh-nv.vue",
+			"tui-(.*)": "thorui-uni/lib/thorui/tui-$1/tui-$1.vue",
+			"^ht-tabbar": "@/components/ht-tabbar/ht-tabbar.vue",
+			"^liu-slide-questions": "@/components/liu-slide-questions/liu-slide-questions.vue",
+			"^uni-calendar": "@/components/uni-calendar/uni-calendar.vue"
+		}
+	}
+}
