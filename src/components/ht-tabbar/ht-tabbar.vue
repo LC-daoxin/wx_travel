@@ -7,7 +7,7 @@
 				:style="{ backgroundColor: item.hump && !backdropFilter ? backgroundColor : 'none' }"
 				@tap="tabbarSwitch(index, item.hump, item.pagePath, item.verify, item)">
 				<view class="tui-icon-box"
-					:class="{ 'tui-tabbar-hump': item.hump, 'tui-tabbar-nohump': !item.hump, 'selected': item.selected && (index !== current || index == 2)}">
+					:class="{ 'tui-tabbar-hump': item.hump, 'tui-tabbar-nohump': !item.hump, 'selected': item.selected && (index !== current || index == 2) }">
 					<image :src="current == index ? item.selectedIconPath : item.iconPath"
 						:class="[item.hump ? '' : 'tui-tabbar-icon']" v-if="!item.name"></image>
 					<tui-icon :name="current === index ? item.activeName : item.name" :customPrefix="item.customPrefix || ''"
@@ -28,9 +28,9 @@
 </template>
 
 <script>
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, defineComponent } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
-export default {
+export default defineComponent({
 	name: 'htTabbar',
 	setup (props, ctx) {
 		const tabBar = reactive([
@@ -46,13 +46,13 @@ export default {
 				name: 'community',
 				activeName: 'community-fill'
 			},
-			{
-				pagePath: '',
-				// text: 'scan',
-				hump: true,
-				iconPath: '/static/images/tabbar/release.png',
-				selectedIconPath: '/static/images/tabbar/release.png'
-			},
+			// {
+			// 	pagePath: '',
+			// 	// text: 'scan',
+			// 	hump: true,
+			// 	iconPath: '/static/images/tabbar/release.png',
+			// 	selectedIconPath: '/static/images/tabbar/release.png'
+			// },
 			{
 				pagePath: '/pages/podcast/index',
 				text: '播客',
@@ -89,14 +89,19 @@ export default {
 			setTimeout(() => {
 				item.selected = false
 			}, 600)
+			setTimeout(() => {
+				uni.switchTab({
+					url: pagePath
+				})
+			}, 300)
 			// 中间加号不跳转 和 当前页点击不跳转
-			if (index !== 2) {
-				setTimeout(() => {
-					uni.switchTab({
-						url: pagePath
-					})
-				}, 300)
-			}
+			// if (index !== 2) {
+			// 	setTimeout(() => {
+			// 		uni.switchTab({
+			// 			url: pagePath
+			// 		})
+			// 	}, 300)
+			// }
 		}
 		return {
 			tabbarSwitch,
@@ -207,7 +212,7 @@ export default {
 			default: 9999
 		}
 	}
-};
+})
 </script>
 
 <style scoped>

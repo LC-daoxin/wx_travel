@@ -1,19 +1,19 @@
 <template>
   <view class="ht-restaurant">
     <view class="restaurant-title">低碳餐厅</view>
-    <view class="restaurant-box" :style="{ '--width': windowWidth + 'px' }">
-      <view class="r-item" @click="click">
+    <view v-if="restaurant[0]" class="restaurant-box" :style="{ '--width': windowWidth + 'px' }">
+      <view class="r-item" @click="handleDetail(restaurant[0]['_id'])">
         <view class="r-item-img">
-          <u-image :radius="10" :showLoading="true" src="https://qcloud.dpfile.com/pc/jQwdOIjTmtJSn52pCDA7KHVBNm1lMWBwAZ2CMP6mt2Z-NpRbr0UwQ7niAIDwKWOCjoJrvItByyS4HHaWdXyO_I7F0UeCRQYMHlogzbt7GHgNNiIYVnHvzugZCuBITtvjski7YaLlHpkrQUr5euoQrg.jpg" width="100px" height="70px"></u-image>
+          <u-image :radius="10" :showLoading="true" :src="restaurant[0].coverUrl[0].url" width="100px" height="70px"></u-image>
         </view>
         <view class="r-item-content">
-          <view class="name">EMPTY JAR 地中海 Brunch & Bistro</view>
-          <view class="desc">地址: 西康路850号马利M+园区B-102 (白色大楼梯旁)</view>
+          <view class="name">{{ restaurant[0].name }}</view>
+          <view class="desc">{{ restaurant[0].address }}</view>
           <view class="rate">
             <view class="star">
-              <u-rate v-model="data.ratenum" :minCount="5" :size="12" activeColor="#f7b335" allowHalf readonly></u-rate>
+              <u-rate v-model="restaurant[0].score" :minCount="5" :size="12" activeColor="#f7b335" allowHalf readonly></u-rate>
             </view>
-            <text class="number">{{ data.ratenum }}</text>
+            <text class="number">{{ restaurant[0].score }}</text>
           </view>
         </view>
         <view class="r-item-more">
@@ -25,13 +25,16 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { ref, reactive } from 'vue'
+import { homeStore } from '@/store/modules/home'
+import { storeToRefs } from 'pinia'
+const store = homeStore()
+const { restaurant } = storeToRefs(store)
 const windowWidth = uni.getSystemInfoSync().windowWidth
-const data = reactive<any>({
-  ratenum: 4.7
-})
-const click = () => {
-  console.log('click')
+const handleDetail = (id) => {
+  uni.navigateTo({
+    url: '/pages/restaurant/details?id=' + id,
+  })
 }
 </script>
 

@@ -3,14 +3,44 @@
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "益起低碳",
+				"navigationBarTitleText": "元气碳",
 				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/index/signIn",
+			"style": {
+				"navigationBarTitleText": "每日签到"
 			}
 		},
 		{
 			"path": "pages/activities/index",
 			"style": {
 				"navigationBarTitleText": "活动"
+			}
+		},
+		{
+			"path": "pages/shop/index",
+			"style": {
+				"navigationBarTitleText": "元气商城"
+			}
+		},
+		{
+			"path": "pages/shop/detail",
+			"style": {
+				"navigationBarTitleText": "商品详情"
+			}
+		},
+		{
+			"path": "pages/activities/eventdetails",
+			"style": {
+				"navigationBarTitleText": "活动详情"
+			}
+		},
+		{
+			"path": "pages/restaurant/details",
+			"style": {
+				"navigationBarTitleText": "餐厅详情"
 			}
 		},
 		{
@@ -22,20 +52,32 @@
 		{
 			"path": "pages/podcast/index",
 			"style": {
-				"navigationBarTitleText": "播客"
+				"navigationBarTitleText": "播客",
+				"backgroundColor": "#f5f7fd"
 			}
 		},
 		{
 			"path": "pages/mine/index",
 			"style": {
-				"navigationStyle": "custom",
-				"backgroundColor": "#F8F8F8"
+				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/plugin/questionnaire",
+			"path": "pages/mine/userinfo",
 			"style": {
-				"navigationBarTitleText": "问卷"
+				"navigationBarTitleText": "个人信息"
+			}
+		},
+		{
+			"path": "pages/mine/qrcode",
+			"style": {
+				"navigationBarTitleText": "兑换券"
+			}
+		},
+		{
+			"path": "pages/mine/myCoins",
+			"style": {
+				"navigationBarTitleText": "元气碳"
 			}
 		},
 		{
@@ -43,6 +85,12 @@
 			"style": {
 				"navigationBarTitleText": "低碳出行"
 			}
+		},
+		{
+			"path": "pages/plugin/details"
+		},
+		{
+			"path": "pages/plugin/details-img"
 		}
 	],
 	"subpackages": [],
@@ -79,7 +127,7 @@
 	},
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "益起低碳",
+		"navigationBarTitleText": "元气碳",
 		"navigationBarBackgroundColor": "#e4f3fb",
 		"backgroundColor": "#e4f3fb"
 	},
@@ -90,8 +138,12 @@
 			"^pyh-nv": "@/components/pyh-nv/pyh-nv.vue",
 			"tui-(.*)": "thorui-uni/lib/thorui/tui-$1/tui-$1.vue",
 			"^ht-tabbar": "@/components/ht-tabbar/ht-tabbar.vue",
-			"^liu-slide-questions": "@/components/liu-slide-questions/liu-slide-questions.vue",
-			"^uni-calendar": "@/components/uni-calendar/uni-calendar.vue"
+			"^tui-form-button": "@/components/tui-form-button/tui-form-button.vue",
+			"^tui-scroll-top": "@/components/tui-scroll-top/tui-scroll-top.vue",
+			"^tui-modal": "@/components/tui-modal/tui-modal.vue",
+			"^tui-poster": "@/components/tui-poster/tui-poster.vue",
+			"^tui-waterfall": "@/components/tui-waterfall/tui-waterfall.vue",
+			"^tui-lazyload-img": "@/components/tui-lazyload-img/tui-lazyload-img.vue"
 		}
 	}
 }

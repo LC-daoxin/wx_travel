@@ -2,32 +2,46 @@
   <view>
     <view class="userbox">
       <view class="user_header">
-        <view class="head_box">
-          <u-avatar class="head_img" :src="data.userInfo.avatarUrl" mode="circle" size="130"></u-avatar>
+        <view class="head_box" @click="toUserInfoPage">
+          <u-avatar class="head_img" size="60" :src="user.avatar.url"></u-avatar>
           <view class="info">
-            <view class="head_name">{{ data.userInfo.nickName }}</view>
-            <view class="departments">{{ data.userInfo.office || '暂无科室' }}</view>
+            <view class="head_name">{{ user.nickName }}</view>
+            <view class="phone">{{ hidePhone(user.phone) }}</view>
           </view>
         </view>
         <image class="user_bg" src="/static/images/mine/user-bg.png"></image>
       </view>
       <view class="user_menu">
-        <image class="arc" src="/static/images/mine/arc.png"></image>
         <view class="server_box">
-          <tui-list-view>
-            <tui-list-cell @click="naviTo('setting')" :arrow="true">
+          <tui-list-view unlined="all">
+            <tui-list-cell @click="naviTo('coins')" :arrow="true">
               <view class="tui-item-box">
-                <tui-icon name="wealth-fill" :size="24" color="#ff7900"></tui-icon>
-                <text class="tui-list-cell_name">我的钱包</text>
+                <tui-icon name="wallet" :size="24" color="#ff7900"></tui-icon>
+                <text class="tui-list-cell_name" style="margin-left: 3px;">元气币</text>
+                <view class="tui-ml-auto">
+                  <u-image :showLoading="true" src="/static/images/icons/htb.png" width="18px" height="18px"></u-image>
+                  <view class="ht-coins">{{ user.carbonCoin }}</view>
+                </view>
               </view>
             </tui-list-cell>
-            <tui-list-cell @click="naviTo('setting')" :arrow="true">
+            <tui-list-cell unlined @click="naviTo('qrcode')" :arrow="true">
+              <view class="tui-item-box">
+                <tui-icon name="coupon" style="margin-left: -4px;" :size="24" color="#ff7900"></tui-icon>
+                <view class="tui-list-cell_name">兑换券</view>
+                <view class="tui-ml-auto">
+                  <view class="tui-badge-box">
+                    <tui-badge v-if="exchangeNum > 0" type="warning">{{ exchangeNum }}</tui-badge>
+                  </view>
+                </view>
+              </view>
+            </tui-list-cell>
+            <!-- <tui-list-cell @click="naviTo('setting')" :arrow="true">
               <view class="tui-item-box">
                 <tui-icon name="service-fill" :size="24" color="#5677fc"></tui-icon>
                 <view class="tui-list-cell_name">服务窗</view>
               </view>
             </tui-list-cell>
-            <tui-list-cell @click="naviTo('setting')" :arrow="true">
+            <tui-list-cell unlined @click="naviTo('setting')" :arrow="true">
               <view class="tui-item-box">
                 <tui-icon name="explore-fill" :size="24" color="#19be6b"></tui-icon>
                 <view class="tui-list-cell_name">发现</view>
@@ -36,96 +50,148 @@
                     shape="circle">探索发现</tui-tag>
                 </view>
               </view>
-            </tui-list-cell>
+            </tui-list-cell> -->
           </tui-list-view>
-          <!-- <u-cell-group>
-            <u-cell-item title="个人设置" @click="naviTo('setting')"><text slot="icon"
-                class="iconfont icon-shezhi"></text></u-cell-item>
-            <u-cell-item title="反馈意见" @click="naviTo('feedBack')"><text slot="icon"
-                class="iconfont icon-shenpi"></text></u-cell-item>
-          </u-cell-group> -->
         </view>
       </view>
+      <view class="official-box">
+        <official-account class="official"></official-account>
+      </view>
     </view>
-    <ht-tabbar :current="4" hump color="#777" selectedColor="#3c9cff" @click="tabbarSwitch"></ht-tabbar>
+    <ht-tabbar :current="3" color="#777" selectedColor="#3c9cff" @click="tabbarSwitch"></ht-tabbar>
   </view>
+  <tui-bottom-popup :zIndex="1002" :maskZIndex="1001" :height="350" :show="popupShow" @close="closePopup">
+    <view class="phonenumber">
+      <tui-icon class="phone-close" name="shut" :size="20" @click="closePopup"></tui-icon>
+      <view class="phone-title"><tui-icon class="friendadd" name="friendadd" color="green" :size="18"></tui-icon>加入低碳出行, 成为伙伴一起助力碳中和~</view>
+      <tui-form-button background="#c3a769" class="phone-btn" type="primary" height="36px" :size="28"
+        radius="15px" open-type="getPhoneNumber" @getphonenumber="getPhoneNumber">
+        <tui-icon class="phone-icon" color="#fff" margin="10" :size="14" name="voipphone"></tui-icon>一键授权手机号码
+      </tui-form-button>
+    </view>
+  </tui-bottom-popup>
 </template>
-
-<script setup lang="ts">
-import { ref, reactive, getCurrentInstance } from 'vue'
-const data = reactive<any>({
-  userInfo: {}
-})
-const currentInstance = ref()
-const naviTo = (page: string) => {
-  switch (page) {
-    case 'setting':
-      // uni.navigateTo({
-      //   url: '/pages/tabbar/mine/personalSettings/personalSettings'
-      // });
-      break;
-    case 'feedBack':
-      // uni.navigateTo({
-      //   url: '/pages/tabbar/mine/feedBack/feedBack'
-      // });
-      break;
-    case 'scheduling':
-    // uni.navigateTo({
-    //   url: '/pages/scheduling/scheduling'
-    // });
-  }
+<script lang="ts">
+import share from '@/public/share'
+export default {
+  mixins: [share]
 }
-const getUserInfo = () => {
-  uni.getStorage({
-    key: 'userInfo',
-    success: res => {
-      Object.assign(data.userInfo, res.data)
+</script>
+<script setup lang="ts">
+import { ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
+import { userInfoStore } from '@/store/modules/user'
+import { RequestApi } from '@/public/request'
+import { storeToRefs } from 'pinia'
+const store = userInfoStore()
+const { user } = storeToRefs(store)
+const exchangeNum = ref(0)
+onShow(() => {
+  RequestApi.isExchangeNum().then((res: any) => {
+    const { code, result } = res
+    if (code == 0) {
+      exchangeNum.value = result.total
     }
   })
-}
-const tabbarSwitch = (e: any) => {
-  //获取登录状态，此处默认未登录
-  let isLogin = false;
-  currentInstance.value = getCurrentInstance()
-  console.log(e, currentInstance)
-  if (e.verify && !isLogin) {
-    uni.showToast({
-      title: '您还未登录，请先登录',
-      icon: 'none',
-      duration: 2000
-    })
-  } else {
-    data.current = e.index;
+  // 隐藏官方的tabBar
+  uni.hideTabBar()
+  console.log('mine onShow')
+  if (!user.value.phone) {
+    popupShow.value = true
+  }
+  console.log('user', user.value)
+})
+const popupShow = ref(false)
+const naviTo = (page: string) => {
+  switch (page) {
+    case 'coins':
+      uni.navigateTo({
+        url: '/pages/mine/myCoins'
+      });
+      break;
+    case 'qrcode':
+      uni.navigateTo({
+        url: '/pages/mine/qrcode'
+      });
+      break;
   }
 }
+const getPhoneNumber = (e) => {
+  console.log('getPhoneNumber', e)
+  if (e.errMsg == "getPhoneNumber:ok") {
+    popupShow.value = false
+    RequestApi.updatePhone({ code: e.code }).then((res: any) => {
+      console.log('updatePhone', res)
+      const { code, data } = res
+      if (code == 0) {
+        store.updateUser()
+        // 
+      }
+    })
+  }
+}
+const closePopup = () => {
+  popupShow.value = false
+}
+const toUserInfoPage = () => {
+  uni.navigateTo({
+    url: '/pages/mine/userinfo'
+  })
+}
+const hidePhone = (phone: string) => {
+  return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
+}
+const tabbarSwitch = (e: any) => {}
 </script>
 
 <style lang="scss">
 .userbox {
+  overflow-x: hidden;
+  height: 100vh;
+  background-color: #f5f6f9;
+
   .user_header {
-    background: #5198ff;
-    height: 287px;
-    width: 100vw;
     position: relative;
-    padding: 0 4%;
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+    z-index: 99;
+    border: none;
+
+    &:after {
+      width: 160%;
+      height: 240px;
+      position: absolute;
+      /*设置水平居中*/
+      left: -30%;
+      top: 0;
+      z-index: -1;
+      content: '';
+      border-radius: 0 0 50% 50%;
+      background: linear-gradient(160deg, #5c9bfa, rgb(181, 226, 250) 50%);
+    }
 
     .head_box {
       display: flex;
+      width: 100%;
+      height: 100%;
       align-items: center;
-      padding: 4.5em 0 0 0.5em;
+      justify-content: flex-start;
       color: #fff;
-
+      padding: 0 8vw;
+      z-index: 1000;
       .head_img {
         margin-right: 20px;
       }
 
       .head_name {
-        font-size: 1.5em;
+        font-size: 1.1em;
+        margin-left: 12px;
         font-weight: 500;
       }
-
-      .departments {
-        font-size: 1.1em;
+      .phone {
+        font-size: 0.8em;
+        margin-left: 12px;
       }
     }
 
@@ -136,6 +202,7 @@ const tabbarSwitch = (e: any) => {
       position: absolute;
       top: 0;
       left: 0;
+      z-index: -1;
     }
 
     img {
@@ -144,11 +211,11 @@ const tabbarSwitch = (e: any) => {
   }
 
   .user_menu {
-    margin-top: -87px;
+    margin-top: 15px;
     padding: 0 4%;
     position: relative;
-    background-color: #f8f8f8;
     padding-bottom: 5px;
+    background-color: #f5f6f9;
 
     .arc {
       width: 100%;
@@ -158,26 +225,81 @@ const tabbarSwitch = (e: any) => {
       left: 0;
     }
 
-    .tui-item-box {
-      width: 100%;
-      display: flex;
-      align-items: center;
-    }
-
     .server_box {
       background-color: #fff;
       margin-bottom: 11px;
-      border-radius: 5px;
-      height: 100px;
+      padding: 10px;
+      border-radius: 8px;
+      height: 100%;
 
-      .iconfont {
-        margin-right: 8px;
-      }
+      .tui-item-box {
+        width: 100%;
+        display: flex;
+        align-items: center;
 
-      .u-cell-item {
-        border: 1px solid #eee;
+        tui-icon {
+          margin-right: 10px;
+        }
+
+        .ht-coins {
+          display: inline-block;
+          font-size: 14px;
+          font-weight: 600;
+          margin: 0 30rpx 0 0;
+          margin-left: 3px;
+        }
+
+        .tui-ml-auto {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          margin-left: auto;
+          text-align: left;
+
+          .tui-badge-box {
+            margin: 0 30rpx 0 0;
+          }
+        }
       }
     }
+  }
+
+  .official-box {
+    padding: 0 4%;
+
+    .official {
+      height: 150rpx;
+    }
+  }
+
+
+}
+
+.phonenumber {
+  height: 200px;
+  padding: 20px;
+  position: relative;
+  .phone-close {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+  }
+  .friendadd {
+    margin-right: 5px;
+  }
+  .phone-title {
+    margin-bottom: 16px;
+    height: 20px;
+    line-height: 20px;
+    font-size: 14px;
+  }
+  .phone-btn {
+    display: flex;
+    align-items: center;
+  }
+  .phone-icon {
+    display: inline-block;
+    margin-right: 10px;
   }
 }
 </style>
