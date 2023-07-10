@@ -773,7 +773,7 @@ async function touchEndStop() {
     let startTime = currentTravel.startTime
     let endTime = new Date().getTime()
     let time = endTime - startTime
-    if (time < 3000) { // 60000
+    if (time < 60000) { // 60000
       uni.showToast({
         title: '行程时间太短(小于1分钟)，不支持记录',
         icon: 'none',
@@ -782,16 +782,16 @@ async function touchEndStop() {
       resetTravelData()
       return
     }
-    // let startEndRes = await getStartCurEndDistance()
-    // if (startEndRes[0].distance < 100) { // 距离开始位置小于100米
-    //   uni.showToast({
-    //     title: '行程距离太短(小于100米)，不支持记录',
-    //     icon: 'none',
-    //     duration: 5000
-    //   })
-    //   resetTravelData()
-    //   return
-    // }
+    let startEndRes = await getStartCurEndDistance()
+    if (startEndRes[0].distance < 100) { // 距离开始位置小于100米
+      uni.showToast({
+        title: '行程距离太短(小于100米)，不支持记录',
+        icon: 'none',
+        duration: 5000
+      })
+      resetTravelData()
+      return
+    }
 
     // 修改currentTravel当前行程状态为结束
     currentTravel.condition = 2
@@ -808,7 +808,7 @@ async function touchEndStop() {
         longitude: cRes[0].to.lng
       }
       // 测试代码
-      curEnd.latitude += 0.001 // 上线时删除
+      // curEnd.latitude += 0.001 // 上线时删除
       getStaticMap(curEnd) // 根据实际结束位置 获取静态地图
     } else {
       getStaticMap({}) // 获取静态地图
@@ -816,7 +816,7 @@ async function touchEndStop() {
 
     getCurLocation().then(async (cur: any) => {
 
-      const curResult: any = await getAddressName(cur.latitude + 0.03, cur.longitude + 0.03, null)
+      const curResult: any = await getAddressName(cur.latitude, cur.longitude, null)
       cur.name = curResult.formatted_addresses.recommend
       cur.address = curResult.address
       let curLine: any

@@ -56,22 +56,24 @@ async function checkForUpdate() {
     await new Promise((resolve, reject) => {
       updateManager.onCheckForUpdate((res) => {
         console.log('是否有新版本', res.hasUpdate);
-        !res.hasUpdate && reject('无需更新');
+        if (res.hasUpdate) {
+          updateManager.onUpdateReady(async (res) => {
+            let modalRes = await uni.showModal({
+              title: '更新提示',
+              content: '新版本已准备好，是否更新？',
+            });
+            if (modalRes.confirm) {
+              // 新的版本已经下载好，调用 applyUpdate 应用新版本并重启
+              updateManager.applyUpdate();
+            }
+          });
+        }
       });
       updateManager.onUpdateFailed(function (res) {
         reject('新的版本下载失败');
       });
     })
-    updateManager.onUpdateReady(async (res) => {
-      let modalRes = await uni.showModal({
-        title: '更新提示',
-        content: '新版本已经准备好，是否重启应用？',
-      });
-      if (modalRes.confirm) {
-        // 新的版本已经下载好，调用 applyUpdate 应用新版本并重启
-        updateManager.applyUpdate();
-      }
-    });
+
   } catch (e) {
     setTimeout(checkForUpdate, 30 * 1000);
   }

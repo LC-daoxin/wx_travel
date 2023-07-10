@@ -57,6 +57,10 @@
       <view class="official-box">
         <official-account class="official"></official-account>
       </view>
+      <view class="footer">
+        <view class="content text">Copyright © 2021-2023 Zero Carbon Plus Technology</view>
+        <view class="version text">版本: 1.0.9</view>
+      </view>
     </view>
     <ht-tabbar :current="3" color="#777" selectedColor="#3c9cff" @click="tabbarSwitch"></ht-tabbar>
   </view>
@@ -93,6 +97,7 @@ onShow(() => {
       exchangeNum.value = result.total
     }
   })
+  store.updateUser()
   // 隐藏官方的tabBar
   uni.hideTabBar()
   console.log('mine onShow')
@@ -300,6 +305,27 @@ const tabbarSwitch = (e: any) => {}
   .phone-icon {
     display: inline-block;
     margin-right: 10px;
+  }
+}
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: calc(50px + env(safe-area-inset-bottom));
+  .text {
+    font-size: 24rpx;
+    color: #A7A7A7;
+    line-height: 1;
+    text-align: center;
+    &:first-child {
+      margin-bottom: 5px;
+    }
   }
 }
 </style>
