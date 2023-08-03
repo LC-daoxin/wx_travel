@@ -1,7 +1,7 @@
 <template>
   <view class="podcast">
     <scroll-view class="podcast-scroll" :scroll-top="data.scrollTop" ref="scrollViewRef" :enable-back-to-top="true"
-      :style="{ 'height': `calc(100vh - 100rpx - ${data.safeBottom + 'px'})` }" scroll-y @scroll="listScroll">
+      :style="{ 'height': `calc(100vh)` }" scroll-y @scroll="listScroll">
       <view class="banner">
         <view class="banner-title">
           <view class="logo">
@@ -18,7 +18,7 @@
         </view>
       </view>
       <view class="content">
-        <view class="audio-item" v-for="item in data.podcastList" :key="item.id">
+        <view v-if="data.podcastList.length > 0" class="audio-item" v-for="item in data.podcastList" :key="item.id">
           <view class="cover"
             :style="{ 'backgroundImage': 'url(' + item.coverUrl[0].url + ')', '--bgsize': item.bgsize || 'contain' }">
             <view class="audio-tag">{{ podcastTypeText(item.podcastType) }}</view>
@@ -39,12 +39,17 @@
             {{ item.title }}
           </view>
         </view>
+        <view v-else class="skeleton">
+          <view v-for="item in 4" :key="item" class="skeleton-item">
+            <u-skeleton class="skeleton-img" :title="false" rows="1" rowsHeight="180" :rowsWidth="['100%']" loading></u-skeleton>
+            <u-skeleton :title="false" rows="1" rowsHeight="25" :rowsWidth="['90%']" loading></u-skeleton>
+          </view>
+        </view>
       </view>
     </scroll-view>
     <tui-scroll-top :scrollTop="data.curScrollTop" @toTop="toTop" :bottom="360"></tui-scroll-top>
   </view>
-  <view :style="{ 'paddingBottom': data.safeBottom + 'px', height: '100rpx' }"></view>
-  <ht-tabbar :current="2" color="#777" selectedColor="#3c9cff" @click="tabbarSwitch"></ht-tabbar>
+  <!-- <view :style="{ 'paddingBottom': data.safeBottom + 'px', height: '100rpx' }"></view> -->
 </template>
 <script lang="ts">
 import share from '@/public/share'
@@ -79,8 +84,6 @@ const toTop = () => {
   })
 }
 onShow(() => {
-  // 隐藏官方的tabBar
-  uni.hideTabBar()
   getWindowInfo()
   let manager = uni.getBackgroundAudioManager()
   console.log('onShow manager', manager)
@@ -164,7 +167,6 @@ function pauseAudio(item) {
 //     console.log('recordPlay', res)
 //   })
 // }
-const tabbarSwitch = (e: any) => { }
 </script>
 
 <style lang="scss" scoped>
@@ -304,4 +306,13 @@ const tabbarSwitch = (e: any) => { }
       }
     }
   }
-}</style>
+}
+.skeleton {
+  .skeleton-item {
+    margin-bottom: 10px;
+    ::v-deep .u-skeleton:first-child {
+      margin-bottom: 4px;
+    }
+  }
+}
+</style>

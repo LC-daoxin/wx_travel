@@ -8,7 +8,7 @@
 
 		<view class="coupon-list">
 			<view class="coupon-item" v-for="(item, index) in couponList" :key="index">
-				<view v-if="item.isExchange" class="exchanged">已兑换</view>
+				<view v-if="item.isExchange" class="exchanged">{{ exchangeText }}</view>
 				<view class="coupon">
 					<image v-if="item.isExchange" src="/static/images/mine/img_fuwuquan_gray_3x.png" class="coupon-img"></image>
 					<image v-else src="/static/images/mine/img_fuwuquan_blue_3x.png" class="coupon-img"></image>
@@ -24,7 +24,7 @@
 				<view class="hidden-box" v-show="item.spread">
 					<view class="code-tit">验证码</view>
 					<view class="code-num" :class="{ 'isExchange': item.isExchange }">{{ item.code }}</view>
-					<view v-if="item.isExchange" class="exchange-text">已兑换</view>
+					<view v-if="item.isExchange" class="exchange-text">{{ exchangeText }}</view>
 					<view class="qrcode-box">
 						<view class="qrcode">
 							<canvas :class="{ 'my-canvas': !item.spread }" :style="{ width: qrcode_w + 'px', height: qrcode_w + 'px' }"
@@ -65,6 +65,7 @@ import { onLoad } from '@dcloudio/uni-app'
 const couponNum = ref(0)
 let couponList = ref<any>([])
 const qrcode_w = uni.upx2px(240)
+const exchangeText = ref('已兑换')
 onLoad(() => {
 	RequestApi.getExchangeRecord().then((res: any) => {
 		console.log('getExchangeRecord', res);
@@ -79,9 +80,19 @@ onLoad(() => {
 				} else if (validityType == 2) {
 					invalidTime = dayjs(new Date(item.createdAt).getTime() + item.goodsInfo.validityTime * 24 * 60 * 60 * 1000).format('YYYY-MM-DD HH:mm:ss');
 					sendTime = dayjs(item.createdAt).format('YYYY-MM-DD HH:mm:ss');
+					// 当前时间超过有效期 为过期
+					if (dayjs().isAfter(invalidTime)) {
+						item.isExchange = true;
+						exchangeText.value = '已过期'
+					}
 				} else if (validityType == 3) {
 					sendTime = dayjs(item.goodsInfo.validityTimeArr[0]).format('YYYY-MM-DD HH:mm:ss');
 					invalidTime = dayjs(item.goodsInfo.validityTimeArr[1]).format('YYYY-MM-DD HH:mm:ss');
+					// 当前时间超过有效期 为过期
+					if (dayjs().isAfter(invalidTime)) {
+						item.isExchange = true;
+						exchangeText.value = '已过期'
+					}
 				}
 				if (!item.isExchange) {
 					couponNum.value++;
@@ -296,6 +307,7 @@ page {
 		font-size: 16px;
 		font-weight: 800;
 		width: 50px;
+		color: #f49f28;
 	}
 
 	.isExchange {
@@ -352,6 +364,7 @@ page {
 	font-size: 30rpx;
 	color: #ccc;
 	top: 49%;
+	z-index: -1;
 }
 
 .tui-rotate_90 {

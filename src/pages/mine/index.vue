@@ -59,12 +59,11 @@
       </view>
       <view class="footer">
         <view class="content text">Copyright © 2021-2023 Zero Carbon Plus Technology</view>
-        <view class="version text">版本: 1.0.9</view>
+        <view class="version text">版本: 1.1.2</view>
       </view>
     </view>
-    <ht-tabbar :current="3" color="#777" selectedColor="#3c9cff" @click="tabbarSwitch"></ht-tabbar>
   </view>
-  <tui-bottom-popup :zIndex="1002" :maskZIndex="1001" :height="350" :show="popupShow" @close="closePopup">
+  <tui-bottom-popup :zIndex="1002" :maskZIndex="1001" :height="200" :show="popupShow" @close="closePopup">
     <view class="phonenumber">
       <tui-icon class="phone-close" name="shut" :size="20" @click="closePopup"></tui-icon>
       <view class="phone-title"><tui-icon class="friendadd" name="friendadd" color="green" :size="18"></tui-icon>加入低碳出行, 成为伙伴一起助力碳中和~</view>
@@ -97,13 +96,11 @@ onShow(() => {
       exchangeNum.value = result.total
     }
   })
-  store.updateUser()
-  // 隐藏官方的tabBar
-  uni.hideTabBar()
-  console.log('mine onShow')
-  if (!user.value.phone) {
-    popupShow.value = true
-  }
+  store.updateUser().then((res: any) => {
+    if (!user.value.phone) {
+      popupShow.value = true
+    }
+  })
   console.log('user', user.value)
 })
 const popupShow = ref(false)
@@ -146,7 +143,6 @@ const toUserInfoPage = () => {
 const hidePhone = (phone: string) => {
   return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
 }
-const tabbarSwitch = (e: any) => {}
 </script>
 
 <style lang="scss">
@@ -317,7 +313,7 @@ const tabbarSwitch = (e: any) => {}
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding-bottom: calc(50px + env(safe-area-inset-bottom));
+  // padding-bottom: calc(50px + env(safe-area-inset-bottom));
   .text {
     font-size: 24rpx;
     color: #A7A7A7;

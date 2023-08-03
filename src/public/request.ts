@@ -7,6 +7,7 @@ function getToken(): string {
 	const base64_token = Base64.encode(token + ':');
 	return 'Basic ' + base64_token;
 }
+let times = 0
 // 请求
 // 请求数据
 function request(
@@ -19,9 +20,9 @@ function request(
 			url: baseUrl + url,
 			method,
 			data,
+			timeout: 5000, // 设置5秒的超时时间
 			header: { Authorization: getToken() },
 			success: (res: any) => {
-				console.log('request', res)
 				if (res.statusCode == 200) {
 					resolve(res.data);
 				} else if (res.statusCode == 401) {
@@ -56,11 +57,24 @@ function request(
 			},
 			fail: (err: any) => {
 				console.log('request fail', err)
-				uni.showToast({
-					title: '服务器发生未知错误' + err,
-					icon: 'none',
-					duration: 1000,
-				});
+				if(err.errMsg.includes('timeout')){  // 判断是否是超时引起的错误
+					if (times < 3) {
+						times++
+						request(url, method, data);
+					} else {
+						uni.showToast({
+							title: '服务器忙, 请稍后访问',
+							icon: 'none',
+							duration: 4000,
+						});
+					}
+				} else {
+					uni.showToast({
+						title: '服务器发生错误' + err,
+						icon: 'none',
+						duration: 1000,
+					});
+				}
 				reject(err);
 			},
 		});
@@ -83,6 +97,8 @@ const RequestApi = {
 	getBannerDetail: (id: string) => request(`/banner/info/${id}`, 'GET', {}),
 	// 获取活动详情
 	getActivityDetail: (id: string) => request(`/activity/info/${id}`, 'GET', {}),
+	// 获取活动报名人员列表
+	getActivityApplyList: (id: string) => request(`/activity/applyList/${id}`, 'GET', {}),
 	// 获取活动列表
 	getActivityList: () => request('/activity/showlist', 'POST', {}),
 	// 报名活动
@@ -111,8 +127,8 @@ const RequestApi = {
 	isExchangeNum: () => request('/exchange/isExchangeNum', 'POST', {}),
 	// 获取当前用户元气币记录
 	getCoinsRecord: () => request('/coin/userRecordList', 'POST', {}),
-	// 获取数字字典
-	getDict: () => request('/dictionary/wxlist', 'POST', {}),
+	// 获取数据字典-Map页
+	getDict: () => request('/dictionary/wxlist', 'GET', {}),
 };
 
 export { RequestApi, getToken };

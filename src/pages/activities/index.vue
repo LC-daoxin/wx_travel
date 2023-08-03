@@ -1,9 +1,9 @@
 <template>
-  <view class="activity">
+  <view class="activity" :class="{ bg: data.activityList.length > 0 }">
     <scroll-view class="activity-scroll" :scroll-top="data.scrollTop" ref="scrollViewRef" :enable-back-to-top="true"
-      :style="{ 'height': `calc(100vh - 100rpx - ${data.safeBottom + 'px'})` }" scroll-y @scroll="listScroll">
+      :style="{ 'height': `calc(100vh)` }" scroll-y @scroll="listScroll">
       <view class="content">
-        <view class="activity-item" v-for="item in data.activityList" :key="item._id" @click="toDetailPage(item['_id'])">
+        <view v-if="data.activityList.length > 0" class="activity-item" v-for="item in data.activityList" :key="item._id" @click="toDetailPage(item['_id'])">
           <view class="cover"
             :style="{ 'backgroundImage': 'url(' + item.activityImgSrc[0].url + ')', '--bgsize': item.bgsize || 'contain' }">
             <view v-if="[0, 1].includes(item.status)" :class="['audio-tag', { online: item.activity_type == 2 }]">{{ activityTypeText(item.activity_type) }}</view>
@@ -13,12 +13,17 @@
             {{ item.name }}
           </view>
         </view>
+        <view v-else class="skeleton">
+          <view v-for="item in 4" :key="item" class="skeleton-item">
+            <u-skeleton class="skeleton-img" :title="false" rows="1" rowsHeight="180" :rowsWidth="['100%']" loading></u-skeleton>
+            <u-skeleton :title="false" rows="1" rowsHeight="25" :rowsWidth="['90%']" loading></u-skeleton>
+          </view>
+        </view>
       </view>
     </scroll-view>
     <tui-scroll-top :scrollTop="data.curScrollTop" @toTop="toTop" :bottom="360"></tui-scroll-top>
   </view>
-  <view :style="{ 'paddingBottom': data.safeBottom + 'px', height: '100rpx' }"></view>
-  <ht-tabbar :current="1" color="#777" selectedColor="#3c9cff" @click="tabbarSwitch"></ht-tabbar>
+  <!-- <view :style="{ 'paddingBottom': data.safeBottom + 'px', height: '100rpx' }"></view> -->
 </template>
 
 <script lang="ts">
@@ -48,8 +53,6 @@ const toTop = () => {
   })
 }
 onShow(() => {
-  // 隐藏官方的tabBar
-  uni.hideTabBar()
   getWindowInfo()
   RequestApi.getActivityList().then((res: any) => {
     data.activityList = res.result.items.map((item: any) => {
@@ -84,26 +87,15 @@ const listScroll = (e) => {
 const toDetailPage = (id) => {
   uni.navigateTo({ url: `/pages/activities/eventdetails?activityId=${id}` });
 }
-const tabbarSwitch = (e: any) => {
-  //获取登录状态，此处默认未登录
-  let isLogin = false;
-  console.log(e)
-  if (e.verify && !isLogin) {
-    uni.showToast({
-      title: '您还未登录，请先登录',
-      icon: 'none',
-      duration: 2000
-    })
-  } else {
-    data.current = e.index;
-  }
-}
 </script>
 
 <style lang="scss" scoped>
 .activity {
-  background: rgb(245, 247, 253);
+  background: #fff;
   height: 100%;
+  &.bg {
+    background: rgb(245, 247, 253);
+  }
 
   .activity-scroll {
     overflow: scroll;
@@ -161,6 +153,14 @@ const tabbarSwitch = (e: any) => {
         text-overflow: ellipsis;
         margin-top: 5px;
       }
+    }
+  }
+}
+.skeleton {
+  .skeleton-item {
+    margin-bottom: 10px;
+    ::v-deep .u-skeleton:first-child {
+      margin-bottom: 4px;
     }
   }
 }

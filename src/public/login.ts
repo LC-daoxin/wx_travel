@@ -33,6 +33,9 @@ const login = (): void => {
 					}
         })
       }
+    },
+    fail: err => {
+      uni.hideLoading()
     }
   })
 }

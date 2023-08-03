@@ -141,14 +141,14 @@
 
 <script setup lang="ts">
 import { ref, reactive, toRefs } from 'vue'
-import { onShow, onShareAppMessage } from "@dcloudio/uni-app"
+import { onShow, onShareAppMessage, onShareTimeline } from "@dcloudio/uni-app"
 import { RequestApi } from '@/public/request'
 import { calculateDistance } from '@/public/qq-Location'
 import { baseUrl } from '@/public/config'
 import { dictStore } from '@/store/modules/dict'
 import { storeToRefs } from 'pinia'
 const dict = dictStore()
-const { news, distanceToCoin } = storeToRefs(dict)
+const { news, distanceToCoin, shareImg } = storeToRefs(dict)
 // 到这去地图详情
 interface Mapdetail {
   accuracy?: number; // 位置的精确度
@@ -273,10 +273,29 @@ onShow(() => {
     })
     return false
   }
+  getMapDict()
   getTravelList()
   showMapinit()
   setNewsList()
 })
+function getMapDict() {
+  RequestApi.getDict().then((res: any) => {
+    const { code, data } = res
+    console.log('getDict', res)
+    if (code == 0 && data.length > 0) {
+      data.forEach((item: any) => {
+        if (item.dictCode == 'news') {
+          dict.setNews(item.dictContent)
+        } else if (item.dictCode == 'share-img') {
+          dict.setShareImg(item.dictContent)
+        } else if (item.dictCode == 'distance-to-coin') {
+          dict.setDistanceToCoin(item.dictContent)
+        }
+      })
+    }
+  })
+}
+// Map页初始化
 function showMapinit() {
   const currentTravel = uni.getStorageSync('currentTravel')
   if (currentTravel && currentTravel.condition == 1) {
@@ -447,7 +466,8 @@ function getTravelList() {
         let carbonCoin = 0
         items.forEach((item: any) => {
           distance += item.distance
-          carbonCoin += calculateCoins(item.distance, item.travelType)
+          // 根据记录数据计算碳币
+          carbonCoin += item.coins // calculateCoins(item.distance, item.travelType)
         })
         travelRecord.distance = (distance / 1000).toFixed(1)
         travelRecord.carbonCoin = carbonCoin
@@ -1300,15 +1320,23 @@ function savePoster() {
     }
   })
 }
-// 定义 onShareAppMessage
+// 分享给朋友
 onShareAppMessage((res) => {
-  console.log("onShareAppMessage", res);
+  console.log("onShareAppMessage", res, shareImg.value[1]);
   return {
-    title: '我在使用“元气碳”小程序，快来一起用吧！',
-    path: '/pages/index/index',
-    imageUrl: mapPosterUrl.value
+    title: shareImg.value[1].itemName || '元气碳, 低碳出行~',
+    path: '/pages/plugin/map',
+    imageUrl: shareImg.value[1].itemValue == 0 ? 'https://dtcx-1318775010.cos.ap-beijing.myqcloud.com/common/share/map.jpg' : shareImg.value[0].itemValue
   };
 });
+// 分享朋友圈
+onShareTimeline(() => {
+  return {
+    title: shareImg.value[1].itemName || '元气碳, 低碳出行~',
+    path: '/pages/plugin/map'
+  }
+})
+
 // 配置 news
 function setNewsList() {
   data.newsList = []

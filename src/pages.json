@@ -44,12 +44,6 @@
 			}
 		},
 		{
-			"path": "pages/scan/index",
-			"style": {
-				"navigationBarTitleText": "扫一扫"
-			}
-		},
-		{
 			"path": "pages/podcast/index",
 			"style": {
 				"navigationBarTitleText": "播客",
@@ -95,33 +89,33 @@
 	],
 	"subpackages": [],
 	"tabBar": {
-		"color": "#7A7E83",
-		"selectedColor": "#3cc51f",
-		"borderStyle": "black",
+		"color": "#777777",
+		"selectedColor": "#3c9cff",
 		"backgroundColor": "#ffffff",
-		"height": "0px",
-		"fontSize": "10px",
-		"iconWidth": "24px",
-		"spacing": "3px",
 		"list": [
 			{
 				"pagePath": "pages/index/index",
-				"text": "首页"
+				"text": "首页",
+				"iconPath": "static/images/tabbar/home.png",
+				"selectedIconPath": "static/images/tabbar/home_fill.png"
 			},
 			{
 				"pagePath": "pages/activities/index",
-				"text": "活动"
-			},
-			{
-				"pagePath": "pages/scan/index"
+				"text": "活动",
+				"iconPath": "static/images/tabbar/community.png",
+				"selectedIconPath": "static/images/tabbar/community_fill.png"
 			},
 			{
 				"pagePath": "pages/podcast/index",
-				"text": "播客"
+				"text": "播客",
+				"iconPath": "static/images/tabbar/voice.png",
+				"selectedIconPath": "static/images/tabbar/voice_fill.png"
 			},
 			{
 				"pagePath": "pages/mine/index",
-				"text": "我的"
+				"text": "我的",
+				"iconPath": "static/images/tabbar/my.png",
+				"selectedIconPath": "static/images/tabbar/my_fill.png"
 			}
 		]
 	},
@@ -137,7 +131,6 @@
 			"^u-(.*)": "uview-plus/components/u-$1/u-$1.vue",
 			"^pyh-nv": "@/components/pyh-nv/pyh-nv.vue",
 			"tui-(.*)": "thorui-uni/lib/thorui/tui-$1/tui-$1.vue",
-			"^ht-tabbar": "@/components/ht-tabbar/ht-tabbar.vue",
 			"^tui-form-button": "@/components/tui-form-button/tui-form-button.vue",
 			"^tui-scroll-top": "@/components/tui-scroll-top/tui-scroll-top.vue",
 			"^tui-modal": "@/components/tui-modal/tui-modal.vue",

@@ -10,8 +10,10 @@ onLaunch(async (opt) => {
   authorize()
 });
 onShow(async () => {
-  await checkForUpdate()
+  const options = uni.getEnterOptionsSync()
+  uni.setStorageSync('enterOptions', options)
   console.log("App Show");
+  await checkForUpdate()
 });
 onHide(() => {
   console.log("App Hide");

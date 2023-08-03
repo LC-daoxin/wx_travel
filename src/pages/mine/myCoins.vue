@@ -22,10 +22,13 @@
 							<view class="distance">{{ (item.extra.distance/ 1000).toFixed(2) }}公里</view>
 						</view>
 						<view class="detail" v-if="item.way == 1">
-							<view class="goods">{{ item.extra.goodsName }}公里</view>
+							<view class="goods">{{ item.extra.goodsName }}</view>
 						</view>
 						<view class="detail" v-if="item.way == 2">
 							<view class="signin">第{{ item.extra.count }}天</view>
+						</view>
+						<view class="detail" v-if="item.way == 8">
+							<view class="goods">{{ item.extra.activityName }}</view>
 						</view>
 					</view>
 					<view class="coin">

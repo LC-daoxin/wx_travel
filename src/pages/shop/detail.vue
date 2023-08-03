@@ -92,6 +92,11 @@ const getWindowInfo = () => {
 // 检查能否兑换
 function checkExchange() {
   return new Promise((resolve, reject) => {
+    if (goodsInfo.value.stopExchange) { // 停止兑换
+      isExchange.value = false
+      btnText.value = '停止兑换'
+      reject(false)
+    }
     if (goodsInfo.value.stock - goodsInfo.value.exchangeNum <= 0) { // 库存不足
       isExchange.value = false
       btnText.value = '已售罄'

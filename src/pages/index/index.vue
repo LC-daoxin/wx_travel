@@ -36,7 +36,12 @@
       <view style="height: 3px"></view>
       <u-skeleton :title="false" rows="1" rowsHeight="100" :rowsWidth="['100%']" loading></u-skeleton>
     </view>
-    <ht-tabbar :current="data.current" color="#777" selectedColor="#3c9cff" @click="tabbarSwitch"></ht-tabbar>
+    <investor v-if="getAllData"/>
+    <view v-else class="skeleton2">
+      <u-skeleton :title="false" rows="1" rowsHeight="18" :rowsWidth="['15%']" loading></u-skeleton>
+      <view style="height: 3px"></view>
+      <u-skeleton :title="false" rows="1" rowsHeight="90" :rowsWidth="['100%']" loading></u-skeleton>
+    </view>
   </view>
 </template>
 <script lang="ts">
@@ -52,6 +57,7 @@ import { RequestApi } from '@/public/request'
 import restaurant from './components/restaurant.vue'
 import iconbar from './components/iconbar.vue'
 import activity from './components/activity.vue'
+import investor from './components/investor.vue'
 import { homeStore } from '@/store/modules/home'
 import { storeToRefs } from 'pinia'
 import { dictStore } from '@/store/modules/dict'
@@ -67,6 +73,7 @@ const data = reactive<any>({
       hide: true
     }
   },
+  safeBottom: 0,  
   current: 0,
   backgroundColor: 'rgba(248,248,248,.7)',
   logoSrc: 'https://dtcx-1318775010.cos.ap-beijing.myqcloud.com/icons/logo_small.png',
@@ -77,9 +84,7 @@ const getAllData = ref(false)
 
 onMounted(() => {
   loadMore()
-  getDict()
-  // 隐藏官方的tabBar
-  uni.hideTabBar()
+  getWindowInfo()
 })
 onShow(() => {
   if (getAllData.value) {
@@ -109,6 +114,28 @@ function getFrontPage() {
         store.setBanner(data.Banner)
         store.setActivity(data.Activity)
         store.setRestaurant(data.Restaurant)
+        data.Dictionary.forEach((item: any) => {
+          if (item.dictCode == 'restaurant-type') {
+            dict.setRestaurantType(item.dictContent)
+          } else if (item.dictCode == 'goods-type') {
+            dict.setGoodsType(item.dictContent)
+          } else if (item.dictCode == 'questionnaire') {
+            dict.setQuestionnaire(item.dictContent[0])
+          } else if (item.dictCode == 'sign-in') {
+            dict.setSignIn(item.dictContent)
+          } else if (item.dictCode == 'task-reward') {
+            dict.setTaskReward(item.dictContent)
+          } else if (item.dictCode == 'news') {
+            dict.setNews(item.dictContent)
+          } else if (item.dictCode == 'share-img') {
+            dict.setShareImg(item.dictContent)
+          } else if (item.dictCode == 'podcast-type') {
+            dict.setPodcastType(item.dictContent)
+          } else if (item.dictCode == 'distance-to-coin') {
+            dict.setDistanceToCoin(item.dictContent)
+          }
+        })
+        uni.setStorageSync('dict', data)
       }
       resolve(res)
     })
@@ -127,41 +154,9 @@ const handleBanner = (i) => {
     uni.navigateTo({ url: `/pages/plugin/details?url=${url}` });
   }
 }
-const getDict = () => {
-  RequestApi.getDict().then((res: any) => {
-    const { code, data } = res
-    console.log('getDict', res)
-    if (code == 0 && data.length > 0) {
-      data.forEach((item: any) => {
-        if (item.dictCode == 'restaurant-type') {
-          dict.setRestaurantType(item.dictContent)
-        } else if (item.dictCode == 'goods-type') {
-          dict.setGoodsType(item.dictContent)
-        } else if (item.dictCode == 'questionnaire') {
-          let arr = item.dictContent.filter((item: any) => item.isEnable)
-          if (arr.length > 0) {
-            dict.setQuestionnaire(arr[0])
-          }
-        } else if (item.dictCode == 'sign-in') {
-          dict.setSignIn(item.dictContent)
-        } else if (item.dictCode == 'task-reward') {
-          dict.setTaskReward(item.dictContent)
-        } else if (item.dictCode == 'news') {
-          dict.setNews(item.dictContent)
-        } else if (item.dictCode == 'share-img') {
-          dict.setShareImg(item.dictContent)
-        } else if (item.dictCode == 'podcast-type') {
-          dict.setPodcastType(item.dictContent)
-        } else if (item.dictCode == 'distance-to-coin') {
-          dict.setDistanceToCoin(item.dictContent)
-        }
-      })
-      uni.setStorageSync('dict', data)
-    }
-  })
-}
-const tabbarSwitch = (e: any) => {
-  console.log('tabbarSwitch', e)
+const getWindowInfo = () => {
+  let info = uni.getWindowInfo();
+  data.safeBottom = info.screenHeight - info.safeArea.bottom + 1
 }
 </script>
 
