@@ -2,7 +2,8 @@
   <!-- 当前位置 => 目的地 -->
   <view class="search">
     <view class="search-box">
-      <view class="start-location" @click="chooseAddress(startObj, 0)">
+      <!-- @click="chooseAddress(startObj, 0)" -->
+      <view class="start-location">
         <tui-icon class="icon" name="gps" color="#3cb27c" bold size="14"></tui-icon>
         <text class="address">{{ startObj.name || startObj.address }}</text>
       </view>
@@ -17,7 +18,7 @@
           @click="chooseTravelType(item)" :style="{ '--color': item.color || '#2b4bf2' }" :key="index">
           <tui-icon custom-prefix="iconfont" :name="item.icon" size="22" color="#2b4bf2"></tui-icon>
           <view class="trip-content" >
-            <view class="coin">{{ calculateCoins(travel[item.type].distance, item.type) }} CC</view>
+            <view class="coin" v-if="distanceToCoin.length > 0">{{ calculateCoins(travel[item.type].distance, item.type) }} CC</view>
             <view class="co2">
               {{ (travel[item.type].distance / 1000).toFixed(2) }} KM
             </view>
@@ -168,14 +169,14 @@ let addressData = reactive({
 })
 const startObj = reactive(<Mapdetail>{})
 const endObj = reactive(<Mapdetail>{})
-type Trip = 'walking' | 'bicycling' | 'driving' // | 'transit'
-const travelType = ref<Trip>('walking')
+type Trip = 'bicycling' | 'driving' // 'walking' | 'transit'
+const travelType = ref<Trip>('bicycling')
 const travelArr = reactive<any>([])
 const travel = reactive<any>({
-  walking: {
-    distance: 0, // 距离 m
-    duration: 0 // 分钟
-  },
+  // walking: {
+  //   distance: 0, // 距离 m
+  //   duration: 0 // 分钟
+  // },
   bicycling: {
     distance: 0,
     duration: 0
@@ -202,12 +203,6 @@ interface ClockObj {
   minute: number,
   second: number
 }
-interface RecentRecord {
-  startTime: Date | String,
-  endTime: Date | String,
-  startPlace: Mapdetail,
-  endPlace: Mapdetail
-}
 const clock = reactive<ClockObj>({
   timer: null,
   clock1: '00',
@@ -226,12 +221,13 @@ const data = reactive<any>({
   progress: 0,
   scale: 16,
   travelResultArr: [
+    // {
+    //   type: 'walking',
+    //   icon: 'icon-footprint',
+    //   coins: 0,
+    //   color: '#71a7a4'
+    // },
     {
-      type: 'walking',
-      icon: 'icon-footprint',
-      coins: 0,
-      color: '#71a7a4'
-    }, {
       type: 'bicycling',
       icon: 'icon-zihangche31',
       coins: 0,
@@ -259,7 +255,7 @@ const data = reactive<any>({
   }],
   newsList: [],
   coors: {
-    'walking': '',
+    // 'walking': '',
     'bicycling': '',
     'driving': ''
   }
@@ -276,16 +272,15 @@ onShow(() => {
   getMapDict()
   getTravelList()
   showMapinit()
-  setNewsList()
 })
 function getMapDict() {
   RequestApi.getDict().then((res: any) => {
     const { code, data } = res
-    console.log('getDict', res)
     if (code == 0 && data.length > 0) {
       data.forEach((item: any) => {
         if (item.dictCode == 'news') {
           dict.setNews(item.dictContent)
+          setNewsList()
         } else if (item.dictCode == 'share-img') {
           dict.setShareImg(item.dictContent)
         } else if (item.dictCode == 'distance-to-coin') {
@@ -297,6 +292,7 @@ function getMapDict() {
 }
 // Map页初始化
 function showMapinit() {
+  console.log('showMapinit')
   const currentTravel = uni.getStorageSync('currentTravel')
   if (currentTravel && currentTravel.condition == 1) {
     // 判断 进行中的行程时间 与 当前时间差 是否大于12小时
@@ -346,7 +342,7 @@ function showMapinit() {
           travelArr.push(...data.travelResultArr)
           addMarkers(startObj.latitude, startObj.longitude, 0)
           addMarkers(endObj.latitude, endObj.longitude, 1)
-          getMapLine('walking')
+          // getMapLine('walking')
           getMapLine('bicycling')
           getMapLine('driving')
         },
@@ -364,7 +360,6 @@ function checkUserLocation() {
   return new Promise((resolve, reject) => {
     uni.getSetting({
       success(res) {
-        console.log(res)
         // 判断是否存在 scope.userLocation 属性
         if (res.authSetting.hasOwnProperty('scope.userLocation')) {
           // 判断是否授权
@@ -380,6 +375,7 @@ function checkUserLocation() {
         }
       },
       fail(err) {
+        console.log('checkUserLocation err', err)
         resolve(false)
       }
     })
@@ -428,6 +424,11 @@ function initMap(isReset?: boolean) {
     success: function (res) {
       console.log('当前位置的经度：' + res.longitude);
       console.log('当前位置的纬度：' + res.latitude);
+      // 判断是否有用户出行记录缓存
+      const userTravelRecord = uni.getStorageSync('travelRecord')
+      if (!userTravelRecord) {
+        getTravelList()
+      }
       getAddressName(res.latitude, res.longitude, startObj)
       startObj.longitude = res.longitude
       startObj.latitude = res.latitude
@@ -446,7 +447,7 @@ function initMap(isReset?: boolean) {
       })
     },
     fail: function (err) {
-      console.log(err)
+      console.log('initMap getLocation', err)
       if (err.errMsg == 'getLocation:fail auth deny') {
         openUserLocation()
       }
@@ -455,10 +456,18 @@ function initMap(isReset?: boolean) {
 }
 // 获取当前用户出行历史记录
 function getTravelList() {
+  const token = uni.getStorageSync('userToken')
+  // 首次进入没有Token, 不请求
+  if (!token) {
+    return
+  }
   RequestApi.getTravelRecord().then((res: any) => {
-    console.log(res)
     const { code, result: { items } } = res
     if (code == 0) {
+      uni.setStorage({
+        key: 'travelRecord',
+        data: items
+      })
       travelRecord.record = items
       if (items.length > 0) {
         // 遍历items 累加distance
@@ -517,7 +526,7 @@ const chooseAddress = (Obj, index) => { // index 0 起点  1 终点
         uni.showToast({
           title: '起点与终点不能相同',
           icon: 'none',
-          duration: 2000
+          duration: 3000
         })
         Obj.name = ''
         Obj.address = ''
@@ -527,11 +536,11 @@ const chooseAddress = (Obj, index) => { // index 0 起点  1 终点
       }
       if (endObj.latitude && endObj.longitude) {
         let seEes = await getStartEndDistance()
-        if (seEes[0].distance < 200) {
+        if (seEes[0].distance < 100) {
           uni.showToast({
-            title: '起点与终点距离不能小于200米',
+            title: '起点与终点距离不能小于100米',
             icon: 'none',
-            duration: 2000
+            duration: 3000
           })
           endObj.name = ''
           endObj.address = ''
@@ -539,11 +548,14 @@ const chooseAddress = (Obj, index) => { // index 0 起点  1 终点
           endObj.longitude = 0
           return
         }
-        getMapLine('walking')
+        // getMapLine('walking')
         getMapLine('bicycling')
         getMapLine('driving')
       }
       addMarkers(Obj.latitude, Obj.longitude, index)
+    },
+    fail: function (err) {
+      console.log('chooseLocation', err)
     }
   })
 }
@@ -622,7 +634,7 @@ const getMapLine = (type: Trip, draw: boolean = true) => { // walking bicycling 
           let color: String
           data.coors[type] = getCoorsString(coors);
           switch (type) {
-            case 'walking': color = '#18b566'; break;
+            // case 'walking': color = '#18b566'; break;
             case 'bicycling': color = '#41b7e5'; break;
             case 'driving': color = '#ff9800'; break;
           }
@@ -717,12 +729,13 @@ function addMarkers(latitude, longitude, index) {
     latitude,
     longitude
   }
-  console.log('markers', markers)
   mapCtx.addMarkers({
     markers: markers,
     clear: true,
     success(sres) {
-      console.log('success', sres)
+    },
+    fail(fres) {
+      console.log('addMarkers fail', fres)
     }
   })
 }
@@ -818,7 +831,7 @@ async function touchEndStop() {
     uni.setStorageSync('currentTravel', currentTravel)
 
     let cRes = await getCalculateDistance()
-    let isCurEnd = false
+    let isCurEnd = false // 是否按照实际结束位置(误差不大于50米)
     let curEnd: any
     if (cRes[0].distance > 50) { // 误差大于50米
       isCurEnd = true
@@ -828,14 +841,12 @@ async function touchEndStop() {
         longitude: cRes[0].to.lng
       }
       // 测试代码
-      // curEnd.latitude += 0.001 // 上线时删除
+      // curEnd.latitude += 0.05 // 上线时删除
       getStaticMap(curEnd) // 根据实际结束位置 获取静态地图
     } else {
       getStaticMap({}) // 获取静态地图
     }
-
     getCurLocation().then(async (cur: any) => {
-
       const curResult: any = await getAddressName(cur.latitude, cur.longitude, null)
       cur.name = curResult.formatted_addresses.recommend
       cur.address = curResult.address
@@ -1137,7 +1148,6 @@ const mapPosterData = reactive<any>([{
   }
 }])
 function ready() {
-  console.log('ready')
   //组件初始化完成
   init.value = true
 }

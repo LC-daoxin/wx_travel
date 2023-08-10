@@ -24,6 +24,10 @@
     <view v-else class="skeleton2">
       <u-skeleton :title="false" rows="1" rowsHeight="76" :rowsWidth="['100%']" loading></u-skeleton>
     </view>
+    <cycling-act v-if="getAllData && cycling.length > 0" />
+    <view v-if="!getAllData" class="skeleton1">
+      <u-skeleton :title="false" rows="1" rowsHeight="116" :rowsWidth="['100%']" loading></u-skeleton>
+    </view>
     <restaurant v-if="getAllData" />
     <view v-else class="skeleton2">
       <u-skeleton :title="false" rows="1" rowsHeight="18" :rowsWidth="['15%']" loading></u-skeleton>
@@ -55,6 +59,7 @@ import { ref, reactive, toRefs, computed, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { RequestApi } from '@/public/request'
 import restaurant from './components/restaurant.vue'
+import cyclingAct from './components/cyclingAct.vue'
 import iconbar from './components/iconbar.vue'
 import activity from './components/activity.vue'
 import investor from './components/investor.vue'
@@ -64,6 +69,7 @@ import { dictStore } from '@/store/modules/dict'
 const dict = dictStore()
 const store = homeStore()
 const { banner } = storeToRefs(store)
+const { cycling } = storeToRefs(dict)
 const data = reactive<any>({
   config: {
     title: "元气碳",
@@ -133,6 +139,8 @@ function getFrontPage() {
             dict.setPodcastType(item.dictContent)
           } else if (item.dictCode == 'distance-to-coin') {
             dict.setDistanceToCoin(item.dictContent)
+          } else if (item.dictCode == 'cycling') {
+            dict.setCycling(item.dictContent)
           }
         })
         uni.setStorageSync('dict', data)

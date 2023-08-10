@@ -35,6 +35,7 @@ const login = (): void => {
       }
     },
     fail: err => {
+      console.log('wx-login-err', err)
       uni.hideLoading()
     }
   })

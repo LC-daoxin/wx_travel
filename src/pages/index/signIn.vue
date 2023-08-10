@@ -81,6 +81,7 @@ export default {
 }
 </script>
 <script setup lang="ts">
+import dayjs from 'dayjs'
 import { ref, reactive } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { RequestApi } from '@/public/request'
@@ -132,7 +133,7 @@ const taskList = reactive<any>([
 const everydayList = reactive<any>([
   {
     id: 1,
-    taskName: '低碳出行(步行/骑行)',
+    taskName: '低碳出行(骑行)',
     iconSrc: '/static/images/activity/travel.png',
     score: 0,
     isComplete: false  // 是否完成
@@ -223,24 +224,17 @@ const isFirstTravel = () => {
     const { code, result } = res
     if (code == 0) {
       if (result.items.length > 0) {
-        const today = new Date().toLocaleDateString()
+        const today = dayjs().format('YYYY/MM/DD')
         result.items.forEach((item) => {
-          let startTime = new Date(Number(item.startTime)).toLocaleDateString()
+          let startTime = dayjs(Number(item.startTime)).format('YYYY/MM/DD')
           console.log('startTime', today , startTime)
           if (today == startTime) {
             travelNum.value += 1
           }
         })
-        // result.items[0] 今天是否打卡 startTime(时间戳) 是不是今天
-        // const today = new Date().toLocaleDateString()
-        // const startTime = new Date(Number(result.items[0].startTime)).toLocaleDateString()
-        // if (today == startTime) {
-        //   everydayList[0].isComplete = true
-        // } else {
-        //   everydayList[0].isComplete = false
-        // }
+        // everydayList[0].isComplete = travelNum.value
       } else {
-        everydayList[0].isComplete = false
+        everydayList[0].isComplete = 0
       }
     }
   })

@@ -1,7 +1,7 @@
 <template>
   <view v-if="activitylist.length > 0" class="activity">
     <view class="activity-title">近期活动</view>
-    <u-swiper :list="activitylist" circular :autoplay="false" radius="5" :height="100" indicator imgMode="aspectFill"
+    <u-swiper :list="activitylist" circular :autoplay="false" radius="5" :height="130" indicator imgMode="aspectFill"
       indicatorStyle="right: 5px; bottom: 5px" bgColor="#e8f1e3" keyName="image" showTitle @change="e => data.currentNum = e.current" @click="handleActivity">
       <template #indicator>
         <view class="indicator-num">

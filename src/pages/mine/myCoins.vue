@@ -20,6 +20,7 @@
 						<view class="detail" v-if="item.way == 4">
 							<tui-tag padding="8rpx 10rpx" size="24rpx" type="green" plain shape="circle">{{ item.extra.travelType == 'bicycling' ? '骑行' : '步行' }}</tui-tag>
 							<view class="distance">{{ (item.extra.distance/ 1000).toFixed(2) }}公里</view>
+							<view class="coins" v-if="item.extra.coins && item.extra.coins !== item.coinsNum"> = {{ item.extra.coins }}币</view>
 						</view>
 						<view class="detail" v-if="item.way == 1">
 							<view class="goods">{{ item.extra.goodsName }}</view>
@@ -39,7 +40,8 @@
 				<view class="row">
 					<view class="time">{{ dayjs(item.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</view>
 					<view class="tag">
-						<tui-tag padding="8rpx 22rpx" size="26rpx" :type="item.type == 1 ? 'light-green' : 'light-orange'" shape="circle">{{ item.type == 1 ? '增加' : '减少' }}</tui-tag>
+						<tui-tag v-if="item.extra && item.extra.coins && item.extra.coins !== item.coinsNum" padding="8rpx 14rpx" size="26rpx" type="green" shape="circle">限制增加</tui-tag>
+						<tui-tag v-else padding="8rpx 22rpx" size="26rpx" :type="item.type == 1 ? 'light-green' : 'light-orange'" shape="circle">{{ item.type == 1 ? '增加' : '减少' }}</tui-tag>
 					</view>
 				</view>
 			</view>
@@ -184,6 +186,9 @@ page {
 				margin-left: 10px;
 				.distance {
 					margin-left: 10px;
+				}
+				.coins {
+					margin-left: 2px;
 				}
 				.goods {
 					margin-left: 10px;

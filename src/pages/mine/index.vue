@@ -59,7 +59,7 @@
       </view>
       <view class="footer">
         <view class="content text">Copyright © 2021-2023 Zero Carbon Plus Technology</view>
-        <view class="version text">版本: 1.1.2</view>
+        <view class="version text">版本: 1.2.0</view>
       </view>
     </view>
   </view>

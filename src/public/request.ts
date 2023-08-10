@@ -111,6 +111,8 @@ const RequestApi = {
 	recordPlay: (data) => request('/podcast/play', 'POST', data),
 	// 获取餐厅详情
 	getRestaurantDetail: (id: string) => request(`/restaurant/info/${id}`, 'GET', {}),
+	// 获取骑行排行榜
+	getRankList: (data) => request('/travel/rankList', 'POST', data),
 	// 新增出行记录
 	addTravelRecord: (data) => request('/travel/add', 'POST', data),
 	// 获取当前用户出行记录

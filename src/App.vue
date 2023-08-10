@@ -12,7 +12,7 @@ onLaunch(async (opt) => {
 onShow(async () => {
   const options = uni.getEnterOptionsSync()
   uni.setStorageSync('enterOptions', options)
-  console.log("App Show");
+  console.log("App Show", options);
   await checkForUpdate()
 });
 onHide(() => {

@@ -13,6 +13,7 @@ export const dictStore = defineStore('dictInfo', {
     shareImg: <any>[], // 分享图片
     podcastType: <any>[], // 播客内容类型
     distanceToCoin: <any>[], // 距离转换元气币系数
+    cycling: <any>[], // 乐在骑中
 	}),
 	// 同步异步传值
 	actions: {
@@ -52,5 +53,9 @@ export const dictStore = defineStore('dictInfo', {
     setDistanceToCoin(arr: any): void {
       this.distanceToCoin = arr;
     },
+    // 乐在骑中
+    setCycling(arr: any): void {
+      this.cycling = arr;
+    }
 	},
 });

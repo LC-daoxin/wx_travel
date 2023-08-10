@@ -14,8 +14,8 @@
             <u-image src="/static/images/activity/time.png" :width="22" :height="22"></u-image>
           </view>
           <view class="time-body">
-            <view class="text">开始时间: {{ new Date(actInfo.time[0]).toLocaleString() }}</view>
-            <view class="text">结束时间: {{ new Date(actInfo.time[1]).toLocaleString() }}</view>
+            <view class="text">开始时间: {{ data.startTime }}</view>
+            <view class="text">结束时间: {{ data.endTime }}</view>
           </view>
 
         </view>
@@ -100,6 +100,7 @@ import { onShareAppMessage, onShareTimeline } from "@dcloudio/uni-app";
 import { ref, reactive } from 'vue'
 import { onShow, onLoad } from '@dcloudio/uni-app'
 import marked from '@/components/uni/marked/index.js'
+import dayjs from 'dayjs'
 import { RequestApi } from '@/public/request'
 import { userInfoStore } from '@/store/modules/user'
 import { storeToRefs } from 'pinia'
@@ -110,7 +111,9 @@ const data = reactive<any>({
   curScrollTop: 0,
   safeBottom: 0,
   imageLoaded: false,
-  imageHeight: 0
+  imageHeight: 0,
+  startTime: '',
+  endTime: '',
 })
 const actId = ref('')
 const isApply = ref(false)
@@ -169,12 +172,15 @@ function getInfoDetail() {
     } else {
       status.value = 2 // 已结束
     }
-    if (res.data.userList.length > 0) {
-      res.data.userList = res.data.userList.map((item) => {
-        return item.avatar.url
-      })
-    }
     actInfo.value = res.data
+    data.startTime = dayjs(res.data.time[0]).format('YYYY-MM-DD HH:mm')
+    if (data.startTime.split(' ')[1] == '00:00') {
+      data.startTime = data.startTime.split(' ')[0]
+    }
+    data.endTime = dayjs(res.data.time[1]).format('YYYY-MM-DD HH:mm')
+    if (data.endTime.split(' ')[1] == '23:59') {
+      data.endTime = data.endTime.split(' ')[0]
+    }
     console.log('actInfo', actInfo.value)
   })
 }
@@ -220,7 +226,13 @@ const getWindowInfo = () => {
   let info = uni.getWindowInfo();
   data.safeBottom = info.screenHeight - info.safeArea.bottom + 1
 }
+// 检查是否报名
 function checkApply() {
+  const token = uni.getStorageSync('userToken')
+  // 首次进入没有Token, 不请求
+  if (!token) {
+    return
+  }
   RequestApi.checkApply({ activityId: actId.value }).then((res: any) => {
     console.log('checkApply', res)
     if (res.data) {
@@ -244,7 +256,7 @@ onShareTimeline(() => {
   }
 })
 
-function handleApply() {
+async function handleApply() {
   const enter = uni.getStorageSync('enterOptions')
   if ([1154].includes(enter.scene)) {
     uni.showModal({
@@ -309,21 +321,18 @@ function apply() {
     }
 
     .title {
-      padding: 10px 15px;
-      height: 20px;
-      line-height: 20px;
+      padding: 10px 15px 5px;
+      line-height: 24px;
       font-size: 18px;
       font-weight: 600;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
+      position: relative;
 
       &::before {
         content: '';
         position: absolute;
-        left: 10px;
+        left: 4px;
         width: 5px;
-        height: 20px;
+        height: calc(100% - 18px);
         background: #12dd66;
       }
     }

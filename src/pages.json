@@ -81,6 +81,12 @@
 			}
 		},
 		{
+			"path": "pages/activities/cycling",
+			"style": {
+				"navigationBarTitleText": "乐在骑中"
+			}
+		},
+		{
 			"path": "pages/plugin/details"
 		},
 		{
@@ -136,7 +142,8 @@
 			"^tui-modal": "@/components/tui-modal/tui-modal.vue",
 			"^tui-poster": "@/components/tui-poster/tui-poster.vue",
 			"^tui-waterfall": "@/components/tui-waterfall/tui-waterfall.vue",
-			"^tui-lazyload-img": "@/components/tui-lazyload-img/tui-lazyload-img.vue"
+			"^tui-lazyload-img": "@/components/tui-lazyload-img/tui-lazyload-img.vue",
+			"^tui-tab": "@/components/tui-tab/tui-tab.vue"
 		}
 	}
 }

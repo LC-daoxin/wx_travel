@@ -95,18 +95,18 @@ function checkExchange() {
     if (goodsInfo.value.stopExchange) { // 停止兑换
       isExchange.value = false
       btnText.value = '停止兑换'
-      reject(false)
+      resolve(false)
     }
     if (goodsInfo.value.stock - goodsInfo.value.exchangeNum <= 0) { // 库存不足
       isExchange.value = false
       btnText.value = '已售罄'
-      reject(false)
+      resolve(false)
     }
     const userInfo = uni.getStorageSync('userInfo')
     if (userInfo.carbonCoin < goodsInfo.value.carbonPrice) { // 元气币不足
       isExchange.value = false
       showExchangeBtn.value = false
-      reject(false)
+      resolve(false)
     }
     resolve(true)
   })
@@ -172,21 +172,18 @@ function handleExchange() {
     }
 
     .title {
-      padding: 10px 15px;
-      height: 20px;
-      line-height: 20px;
+      padding: 10px 15px 5px;
+      line-height: 24px;
       font-size: 18px;
       font-weight: 600;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
+      position: relative;
 
       &::before {
         content: '';
         position: absolute;
-        left: 10px;
+        left: 4px;
         width: 5px;
-        height: 20px;
+        height: calc(100% - 18px);
         background: #12dd66;
       }
     }
