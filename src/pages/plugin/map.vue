@@ -108,10 +108,10 @@
               </view>
             </view>
             <view class="info">
-              <view class="distance">{{ (travelRecord.record[0].distance / 1000).toFixed(2) }}<view class="units">公里
+              <view class="distance info-row"><view class="num">{{ (travelRecord.record[0].distance / 1000).toFixed(2) }}</view><view class="units">公里
                 </view>
               </view>
-              <view class="co2">{{ calculateCoins(travelRecord.record[0].distance, travelRecord.record[0].travelType) }}
+              <view class="co2 info-row"><view class="num">{{ calculateCoins(travelRecord.record[0].distance, travelRecord.record[0].travelType) }}</view>
                 <view class="units">CC</view>
               </view>
             </view>
@@ -125,14 +125,15 @@
         </view>
       </view>
     </view>
-    <tui-modal :show="showModal" @cancel="resetPage" width="320px" :padding="0" :custom="true">
+    <tui-modal :show="showModal" @cancel="resetPage" width="320px" :padding="0" custom backgroundColor="transparent">
       <view class="tui-modal-custom">
+        <image src="/static/images/map/icon_popup_closed.png" class="tui-close__img" @tap.stop="resetPage"></image>
         <u-image :src="modalImgUrl" :width="320" :radius="12" :height="507" mode="aspectFit"></u-image>
         <view class="modelBtn">
-          <tui-form-button class="save" height="30px" width="90px" borderColor="#fff" size="24"
+          <tui-form-button class="save" height="35px" width="120px" size="27" borderColor="#51b4ef"
             background="linear-gradient(110deg, #51b4ef, #9ccdff)" radius="30px"
             @click="savePoster">保存海报</tui-form-button>
-          <tui-form-button height="30px" width="90px" borderColor="#fff" size="24"
+          <tui-form-button height="35px" width="120px" size="27" borderColor="#51b4ef"
             background="linear-gradient(110deg, #51b4ef, #9ccdff)" radius="30px" open-type="share">分享给朋友</tui-form-button>
         </view>
       </view>
@@ -262,6 +263,9 @@ const data = reactive<any>({
 })
 let mapCtx: any = uni.createMapContext('myMap')
 onShow(() => {
+  // setTimeout(() => {
+  //   showModal.value = true
+  // }, 1000)
   const checkResult = checkUserLocation()
   if (!checkResult) {
     uni.switchTab({
@@ -799,8 +803,8 @@ async function touchEndStop() {
   if (data.timeOut == 0) { // 未达到1秒长按
   } else {
     data.timeOut = 0 // 长按完毕
-    clearInterval(clock.timer)
-    data.startRecord = false
+    clearClock()
+    // data.startRecord = false // 停止记录 这段代码会导致海报图 第一次点击无效
     // 计算当前开始时间到结束时间是否小于一分钟
     let currentTravel = uni.getStorageSync('currentTravel')
     let startTime = currentTravel.startTime
@@ -830,30 +834,20 @@ async function touchEndStop() {
     currentTravel.condition = 2
     uni.setStorageSync('currentTravel', currentTravel)
 
-    let cRes = await getCalculateDistance()
-    let isCurEnd = false // 是否按照实际结束位置(误差不大于50米)
-    let curEnd: any
-    if (cRes[0].distance > 50) { // 误差大于50米
-      isCurEnd = true
-      console.log('实际结束位置 距离 导航结束位置 误差大于50米')
-      curEnd = {
-        latitude: cRes[0].to.lat,
-        longitude: cRes[0].to.lng
-      }
-      // 测试代码
-      // curEnd.latitude += 0.05 // 上线时删除
-      getStaticMap(curEnd) // 根据实际结束位置 获取静态地图
-    } else {
-      getStaticMap({}) // 获取静态地图
+    const cRes = await getCalculateDistance()
+    const curEnd: any = {
+      latitude: cRes[0].to.lat,
+      longitude: cRes[0].to.lng
     }
+    // 测试代码
+    // curEnd.latitude += 0.042 // 上线时删除
+    getStaticMap(curEnd) // 根据实际结束位置 获取静态地图
     getCurLocation().then(async (cur: any) => {
       const curResult: any = await getAddressName(cur.latitude, cur.longitude, null)
-      cur.name = curResult.formatted_addresses.recommend
+      console.log('curResult', curResult)
+      cur.name = curResult.formatted_addresses?.recommend
       cur.address = curResult.address
-      let curLine: any
-      if (isCurEnd) {
-        curLine = await getCurTravel(travelType.value, curEnd)
-      }
+      let curLine: any = await getCurTravel(travelType.value, curEnd)
       let params = {
         startTime: currentTravel.startTime,
         endTime: new Date().getTime(),
@@ -861,8 +855,8 @@ async function touchEndStop() {
         endPlace: currentTravel.endPlace, // 导航选择的终点
         actStart: currentTravel.startPlace, // 实际出发位置
         actEnd: cur, // 实际结束位置
-        distance: isCurEnd ? curLine.distance : travel[travelType.value].distance, // 导航计算距离
-        coins: isCurEnd ? calculateCoins(curLine.distance, travelType.value) : calculateCoins(travel[travelType.value].distance, travelType.value), // 元气币
+        distance: curLine.distance, // 导航计算距离
+        coins: calculateCoins(curLine.distance, travelType.value), // 元气币
         travelType: travelType.value, // 交通模式 'walking' | 'bicycling' | 'driving'
         errorDistance: cRes[0].distance, // 误差距离
       }
@@ -879,6 +873,45 @@ async function touchEndStop() {
   data.progress = 0
   data.touchstate = false
 }
+// 获取实际出行 距离/时间
+function getCurTravel(type: Trip, curEnd) {
+  return new Promise((resolve, reject) => {
+    let params = {
+      key: 'UVHBZ-SWH3U-NDGVP-GHRPB-BFYQ7-72F27',
+      from: startObj.latitude + ',' + startObj.longitude,
+      to: curEnd.latitude + ',' + curEnd.longitude,
+    }
+    uni.request({
+      url: `https://apis.map.qq.com/ws/direction/v1/${type}/`,
+      data: params,
+      success: (res) => {
+        console.log('实际出行 距离/时间', res)
+        const { status, result, message } = res.data as any
+        if (status == 0) {
+          // 绘制路线
+          let coors = result.routes[0].polyline
+          let pl: any = []
+          //坐标解压（返回的点串坐标，通过前向差分进行压缩）
+          var kr = 1000000;
+          for (var i = 2; i < coors.length; i++) {
+            coors[i] = Number(coors[i - 2]) + Number(coors[i]) / kr;
+          }
+          //将解压后的坐标放入点串数组pl中
+          for (var i = 0; i < coors.length; i += 2) {
+            pl.push({
+              latitude: coors[i],
+              longitude: coors[i + 1]
+            })
+          }
+          result.routes[0].coors = getCoorsString(coors);
+          resolve(result.routes[0]) // distance duration
+        } else {
+          console.log(params, status, message)
+        }
+      }
+    });
+  })
+}
 function detail(e) {
   console.log(e)
 }
@@ -894,7 +927,6 @@ async function getCalculateDistance() {
     longitude: Location.longitude,
   }]
   const res = await calculateDistance(start, end)
-  console.log('getCalculateDistance', res)
   return res
 }
 // 计算开始地点和 实际结束地点 直线距离
@@ -909,7 +941,6 @@ async function getStartCurEndDistance() {
     longitude: Location.longitude,
   }]
   const res = await calculateDistance(start, end)
-  console.log('getStartCurEndDistance', res)
   return res
 }
 // 计算开始地点和 导航结束地点直线距离
@@ -923,7 +954,6 @@ async function getStartEndDistance() {
     longitude: endObj.longitude,
   }]
   const res = await calculateDistance(start, end)
-  console.log('getStartEndDistance', res)
   return res
 }
 // 跳转重置
@@ -941,13 +971,7 @@ function resetTravelData() {
   endObj.latitude = 0
   endObj.name = ''
   endObj.address = ''
-  clock.timer = null
-  clock.clock1 = '00'
-  clock.clock2 = '00'
-  clock.clock3 = '00'
-  clock.hour = 0
-  clock.minute = 0
-  clock.second = 0
+  clearClock()
   data.startRecord = false // 记录结束
   // 重置地图
   // mapCtx.removeMarkers({ // 无效
@@ -967,6 +991,17 @@ function resetTravelData() {
   // 移除 path
   data.polyline[0].points = []
   initMap(true)
+}
+// 清除计时器
+function clearClock() {
+  clearInterval(clock.timer)
+  clock.timer = null
+  clock.clock1 = '00'
+  clock.clock2 = '00'
+  clock.clock3 = '00'
+  clock.hour = 0
+  clock.minute = 0
+  clock.second = 0
 }
 // 开始计时
 function startHandler() {
@@ -1151,6 +1186,65 @@ function ready() {
   //组件初始化完成
   init.value = true
 }
+const showModal = ref(false)
+const modalImgUrl = ref('')
+// function hideModel() {
+//   resetTravelData()
+//   mapPosterData[7].text = '用时: '
+//   mapPosterData[8].text = '全程: '
+//   mapPosterData[9].text = '获得元气币: '
+//   showModal.value = false
+// }
+// 获取地图静态图
+async function getStaticMap(curEnd) {
+  uni.showLoading({
+    title: '海报绘制中...'
+  })
+  let start = `icon:https://dtcx-1318775010.cos.ap-beijing.myqcloud.com/common/map/startm.png|${startObj.latitude},${startObj.longitude}`
+  let end = `icon:https://dtcx-1318775010.cos.ap-beijing.myqcloud.com/common/map/endm.png|${curEnd.latitude},${curEnd.longitude}`
+  let curLine: any = await getCurTravel(travelType.value, curEnd)
+  let path = `color:0x008000|weight:10|${curLine.coors}`
+  uni.request({
+    url: `${baseUrl}/common/uploadMap`,
+    method: 'POST',
+    data: {
+      size: '500*500',
+      scale: 1, // 开启会导致参数错误 偶现
+      format: 'png',
+      key: 'UVHBZ-SWH3U-NDGVP-GHRPB-BFYQ7-72F27',
+      start,
+      end,
+      path
+    },
+    success: async (res: any) => {
+      console.log('腾讯地图静态图', res)
+      const result: any = await getAddressName(curEnd.latitude, curEnd.longitude, null) // result.formatted_addresses.recommend
+      if (res.statusCode == 200 && res.data.msg == 'ok') {
+        drawStaticMapImage(res, result, curLine)
+      } else {
+        drawStaticMapImage(null, result, curLine)
+      }
+    },
+    fail: async (err) => {
+      uni.hideLoading()
+      const result: any = await getAddressName(curEnd.latitude, curEnd.longitude, null)
+      drawStaticMapImage(null, result, curLine)
+      console.log('腾讯地图静态图 Error', err)
+    }
+  })
+}
+// 绘制海报详情信息
+function drawStaticMapImage(res, result, curLine) {
+  mapPosterData[1].src = res ? res.data.data : shareImg.value[2].itemValue == 0 ? 'https://dtcx-1318775010.cos.ap-beijing.myqcloud.com/common/share/map.jpg' : shareImg.value[2].itemValue
+  mapPosterData[3].text = startObj.name || startObj.address
+  mapPosterData[5].text = result.formatted_addresses.recommend || result.address
+  const { second, minute, hour } = toRefs(clock)
+  mapPosterData[7].text += `${hour.value > 0 ? hour.value + '小时' : ''} ${minute.value > 0 ? minute.value + '分钟' : ''} ${second.value > 0 ? second.value + '秒' : ''}`
+  mapPosterData[8].text += (curLine.distance / 1000).toFixed(2) + ' km'
+  mapPosterData[8].style.color = travel[travelType.value].color
+  mapPosterData[9].text += calculateCoins(curLine.distance, travelType.value) + ' cc'
+  mapPoster()
+}
 //调用方法绘制海报
 function mapPoster() {
   console.log(1, init.value, posterRef)
@@ -1179,121 +1273,6 @@ function mapPoster() {
       resetTravelData()
     }, 2000)
   }
-}
-const showModal = ref(false)
-const modalImgUrl = ref('')
-function hideModel() {
-  resetTravelData()
-  mapPosterData[7].text = '用时: '
-  mapPosterData[8].text = '全程: '
-  mapPosterData[9].text = '获得元气币: '
-  showModal.value = false
-}
-// 获取地图静态图
-async function getStaticMap(curEnd) {
-  uni.showLoading({
-    title: '海报绘制中...'
-  })
-  let start = `icon:https://dtcx-1318775010.cos.ap-beijing.myqcloud.com/common/map/startm.png|${startObj.latitude},${startObj.longitude}`
-  let end = `icon:https://dtcx-1318775010.cos.ap-beijing.myqcloud.com/common/map/endm.png|${curEnd.latitude || endObj.latitude},${curEnd.longitude || endObj.longitude}`
-  let path = `color:0x008000|weight:10|${data.coors[travelType.value]}`
-  let curLine: any
-  if (curEnd.latitude) {
-    curLine = await getCurTravel(travelType.value, curEnd)
-    path = `color:0x008000|weight:10|${curLine.coors}`
-  }
-  uni.request({
-    url: `${baseUrl}/common/uploadMap`,
-    method: 'POST',
-    data: {
-      size: '500*500',
-      scale: 1, // 开启会导致参数错误 偶现
-      format: 'png',
-      key: 'UVHBZ-SWH3U-NDGVP-GHRPB-BFYQ7-72F27',
-      start,
-      end,
-      path
-    },
-    success: async (res: any) => {
-      console.log('upload', res, curEnd)
-      if (curEnd.latitude) { // 实际终点静态图
-        console.log('实际终点静态图')
-        const result: any = await getAddressName(curEnd.latitude, curEnd.longitude, null) // result.formatted_addresses.recommend
-        mapPosterData[1].src = res.data.data
-        mapPosterData[3].text = startObj.name || startObj.address
-        mapPosterData[5].text = result.formatted_addresses.recommend || result.address
-        const { second, minute, hour } = toRefs(clock)
-        mapPosterData[7].text += `${hour.value > 0 ? hour.value + '小时' : ''} ${minute.value > 0 ? minute.value + '分钟' : ''} ${second.value > 0 ? second.value + '秒' : ''}`
-        mapPosterData[8].text += (curLine.distance / 1000).toFixed(2) + ' km'
-        mapPosterData[8].style.color = travel[travelType.value].color
-        mapPosterData[9].text += calculateCoins(curLine.distance, travelType.value) + ' cc'
-        console.log('mapPosterData 实际', mapPosterData)
-        mapPoster()
-      } else {
-        mapPosterData[1].src = res.data.data
-        mapPosterData[3].text = startObj.name || startObj.address
-        mapPosterData[5].text = endObj.name || endObj.address
-        const { second, minute, hour } = toRefs(clock)
-        mapPosterData[7].text += `${hour.value > 0 ? hour.value + '小时' : ''} ${minute.value > 0 ? minute.value + '分钟' : ''} ${second.value > 0 ? second.value + '秒' : ''}`
-        mapPosterData[8].text += (travel[travelType.value].distance / 1000).toFixed(2) + ' km'
-        mapPosterData[8].style.color = travel[travelType.value].color
-        mapPosterData[9].text += calculateCoins(travel[travelType.value].distance, travelType.value) + ' cc'
-        console.log('mapPosterData 导航', mapPosterData)
-        mapPoster()
-      }
-    },
-    fail: (err) => {
-      uni.hideLoading()
-      uni.showToast({
-        title: err.errMsg,
-        icon: 'none',
-        duration: 2000
-      })
-      setTimeout(() => {
-        hideModel()
-      }, 2000)
-      console.log('uploadMap', err)
-    }
-  })
-}
-// 获取实际出行 距离/时间
-function getCurTravel(type: Trip, curEnd) {
-  return new Promise((resolve, reject) => {
-    let params = {
-      key: 'UVHBZ-SWH3U-NDGVP-GHRPB-BFYQ7-72F27',
-      from: startObj.latitude + ',' + startObj.longitude,
-      to: curEnd.latitude + ',' + curEnd.longitude,
-    }
-    uni.request({
-      url: `https://apis.map.qq.com/ws/direction/v1/${type}/`,
-      data: params,
-      success: (res) => {
-        console.log('实际出行 距离/时间', res)
-        const { status, result, message } = res.data as any
-        if (status == 0) {
-          // 绘制路线
-          let coors = result.routes[0].polyline
-          let pl: any = []
-          //坐标解压（返回的点串坐标，通过前向差分进行压缩）
-          var kr = 1000000;
-          for (var i = 2; i < coors.length; i++) {
-            coors[i] = Number(coors[i - 2]) + Number(coors[i]) / kr;
-          }
-          //将解压后的坐标放入点串数组pl中
-          for (var i = 0; i < coors.length; i += 2) {
-            pl.push({
-              latitude: coors[i],
-              longitude: coors[i + 1]
-            })
-          }
-          result.routes[0].coors = getCoorsString(coors);
-          resolve(result.routes[0]) // distance duration
-        } else {
-          console.log(params, status, message)
-        }
-      }
-    });
-  })
 }
 // 保存海报
 function savePoster() {
@@ -1336,7 +1315,7 @@ onShareAppMessage((res) => {
   return {
     title: shareImg.value[1].itemName || '元气碳, 低碳出行~',
     path: '/pages/plugin/map',
-    imageUrl: shareImg.value[1].itemValue == 0 ? 'https://dtcx-1318775010.cos.ap-beijing.myqcloud.com/common/share/map.jpg' : shareImg.value[0].itemValue
+    imageUrl: shareImg.value[1].itemValue == 0 ? 'https://dtcx-1318775010.cos.ap-beijing.myqcloud.com/common/share/map.jpg' : shareImg.value[1].itemValue
   };
 });
 // 分享朋友圈
@@ -1676,7 +1655,7 @@ function setNewsList() {
 
         .left {
           @include flex(row);
-
+          flex: 1;
           .photo {
             width: 40px;
             height: 40px;
@@ -1705,30 +1684,34 @@ function setNewsList() {
 
         .info {
           font-size: 13px;
-          width: 60px;
+          min-width: 60px;
           font-weight: 500;
-
-          .distance {
+          .info-row {
             height: 20px;
             line-height: 20px;
-            color: #58a8fe;
+            @include flex(row);
+            justify-content: space-between;
+            .num {
+              width: calc(100% - 30px);
+              display: inline-block;
+              text-align: right;
+            }
 
             .units {
-              margin-left: 5px;
+              width: 26px;
+              margin-left: 4px;
               display: inline-block;
               font-weight: 700;
             }
           }
+          .distance {
+            color: #58a8fe;
+          }
 
           .co2 {
-            height: 20px;
-            line-height: 20px;
             color: #fcaa3e;
-
             .units {
-              margin-left: 5px;
-              display: inline-block;
-              font-weight: 700;
+              font-size: 15px;
             }
           }
         }
@@ -1773,7 +1756,14 @@ function setNewsList() {
   flex-direction: column;
   align-items: center;
   height: 560px;
-
+  position: relative;
+  .tui-close__img {
+		width: 48rpx;
+		height: 48rpx;
+		position: absolute;
+		right: 0;
+		top: -60rpx;
+	}
   .modelBtn {
     width: 100%;
     display: flex;

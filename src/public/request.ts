@@ -60,7 +60,9 @@ function request(
 				if(err.errMsg.includes('timeout')){  // 判断是否是超时引起的错误
 					if (times < 3) {
 						times++
-						request(url, method, data);
+						request(url, method, data).then(res => {
+							resolve(res)
+						})
 					} else {
 						uni.showToast({
 							title: '服务器忙, 请稍后访问',
